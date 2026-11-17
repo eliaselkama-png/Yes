@@ -1,0 +1,372 @@
+<title>Práctica 4 · Montaje</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: cuaderno de laboratorio de una columna; cada circuito = esquema + tabla de cableado pin a pin */
+:root{
+  --bg:#f6f8f7; --panel:#ffffff; --fg:#17201d; --muted:#5b6b65; --line:#cfd9d5;
+  --accent:#0d7a5f; --wire:#1f4fb8; --g:#1a9a4a; --y:#c08a00; --r:#c8352b; --chip:#eef3f1;
+  --display:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111715; --panel:#18211e; --fg:#e4ece9; --muted:#9aaba5; --line:#2e3c37;
+  --accent:#4cc9a0; --wire:#7aa2ff; --g:#4ad07a; --y:#f0c040; --r:#ff6b5e; --chip:#1f2a26; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111715; --panel:#18211e; --fg:#e4ece9; --muted:#9aaba5; --line:#2e3c37;
+  --accent:#4cc9a0; --wire:#7aa2ff; --g:#4ad07a; --y:#f0c040; --r:#ff6b5e; --chip:#1f2a26; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--display);font-size:15px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 60px}
+main{max-width:920px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1{font-size:1.9rem;margin:0;text-wrap:balance;letter-spacing:-.01em}
+h2{font-size:1.4rem;margin:0 0 4px;text-wrap:balance;border-bottom:2px solid var(--accent);padding-bottom:6px}
+h3{font-size:1.05rem;margin:18px 0 8px}
+p{margin:6px 0;max-width:70ch}
+.sub{color:var(--muted)}
+.eyebrow{font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+section{display:flex;flex-direction:column;gap:6px}
+code,.mono{font-family:var(--mono);font-size:.92em}
+.eq{font-family:var(--mono);background:var(--chip);border:1px solid var(--line);border-radius:6px;padding:10px 14px;display:grid;grid-template-columns:auto 1fr;gap:4px 14px;max-width:100%;overflow-x:auto}
+.eq b{color:var(--accent)}
+.scroll{overflow-x:auto;max-width:100%}
+table{border-collapse:collapse;font-size:.9rem;min-width:420px;width:100%}
+th,td{border:1px solid var(--line);padding:5px 9px;text-align:left;vertical-align:top}
+th{background:var(--chip);font-weight:600}
+td.n,th.n{font-family:var(--mono);text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
+.chiphead{font-family:var(--mono);font-weight:600}
+.pill{display:inline-block;font-family:var(--mono);font-size:.78rem;padding:1px 7px;border-radius:99px;border:1px solid var(--line)}
+.G{color:var(--g)} .Y{color:var(--y)} .R{color:var(--r)}
+.note{border-left:3px solid var(--accent);padding:6px 12px;background:var(--panel);font-size:.93rem}
+.warn{border-left-color:var(--y)}
+figure{margin:8px 0;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px;overflow-x:auto}
+figcaption{font-size:.82rem;color:var(--muted);margin-top:6px}
+svg text{font-family:var(--mono);fill:var(--fg)}
+svg .box{fill:var(--chip);stroke:var(--fg);stroke-width:1.3}
+svg .w{stroke:var(--wire);stroke-width:1.6;fill:none}
+svg .k{stroke:var(--fg);stroke-width:1.3;fill:none}
+svg .dot{fill:var(--wire)}
+svg .lbl{font-size:11px;fill:var(--muted)}
+svg .st{fill:var(--panel);stroke:var(--fg);stroke-width:1.5}
+svg .stz{fill:var(--panel);stroke:var(--accent);stroke-width:3}
+svg .arr{stroke:var(--fg);stroke-width:1.3;fill:none;marker-end:url(#ah)}
+svg .ahf{fill:var(--fg)}
+ol,ul{margin:4px 0;padding-left:22px} li{margin:3px 0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.grid2>*{min-width:0}
+</style>
+
+<main>
+<header>
+  <div class="eyebrow">Fundamentos de Tecnología de Computadores · Práctica 4</div>
+  <h1>Montaje en el simulador: semáforo y candado</h1>
+  <p class="sub">Segunda parte de la práctica. Esquemas y cableado pin a pin para montar los dos circuitos en el simulador como en una protoboard. Ambos diseños se han comprobado por simulación lógica (las 16 cuentas del semáforo y 5000 entradas aleatorias del candado).</p>
+</header>
+
+<section>
+  <h2>Patillaje de los integrados usados</h2>
+  <div class="grid2">
+    <div class="scroll"><table>
+      <tr><th colspan="4" class="chiphead">74LS76 · doble JK, flanco de bajada</th></tr>
+      <tr><th class="n">Pin</th><th>Señal</th><th class="n">Pin</th><th>Señal</th></tr>
+      <tr><td class="n">1</td><td>1CLK</td><td class="n">16</td><td>1K</td></tr>
+      <tr><td class="n">2</td><td>1PRE̅</td><td class="n">15</td><td>1Q</td></tr>
+      <tr><td class="n">3</td><td>1CLR̅</td><td class="n">14</td><td>1Q̅</td></tr>
+      <tr><td class="n">4</td><td>1J</td><td class="n">13</td><td><b>GND</b></td></tr>
+      <tr><td class="n">5</td><td><b>VCC</b></td><td class="n">12</td><td>2K</td></tr>
+      <tr><td class="n">6</td><td>2CLK</td><td class="n">11</td><td>2Q</td></tr>
+      <tr><td class="n">7</td><td>2PRE̅</td><td class="n">10</td><td>2Q̅</td></tr>
+      <tr><td class="n">8</td><td>2CLR̅</td><td class="n">9</td><td>2J</td></tr>
+    </table></div>
+    <div class="scroll"><table>
+      <tr><th colspan="4" class="chiphead">74LS08 / 74LS32 (AND / OR)</th></tr>
+      <tr><th>Puerta</th><th class="n">Entradas</th><th class="n">Salida</th><th></th></tr>
+      <tr><td>1</td><td class="n">1, 2</td><td class="n">3</td><td rowspan="4">VCC = 14<br>GND = 7</td></tr>
+      <tr><td>2</td><td class="n">4, 5</td><td class="n">6</td></tr>
+      <tr><td>3</td><td class="n">9, 10</td><td class="n">8</td></tr>
+      <tr><td>4</td><td class="n">12, 13</td><td class="n">11</td></tr>
+      <tr><th colspan="4" class="chiphead">74LS02 (NOR) · salida primero</th></tr>
+      <tr><td>1</td><td class="n">2, 3</td><td class="n">1</td><td rowspan="4">VCC = 14<br>GND = 7</td></tr>
+      <tr><td>2</td><td class="n">5, 6</td><td class="n">4</td></tr>
+      <tr><td>3</td><td class="n">8, 9</td><td class="n">10</td></tr>
+      <tr><td>4</td><td class="n">11, 12</td><td class="n">13</td></tr>
+    </table></div>
+  </div>
+  <p class="note warn">Ojo con el 74LS76: la alimentación <b>no</b> está en las esquinas. VCC es el pin 5 y GND el pin 13. PRE̅ y CLR̅ son activos a nivel bajo: si no se usan, se conectan a VCC.</p>
+</section>
+
+<!-- ========================= SEMÁFORO ========================= -->
+<section>
+  <h2>1 · Semáforo con contador asíncrono</h2>
+  <div class="eyebrow">Componentes: 2 × 74LS76 · 74LS08 · 74LS32 · 74LS47 · display 7 seg · temporizador · 3 leds</div>
+
+  <h3>Tabla y funciones</h3>
+  <div class="scroll"><table style="min-width:360px;max-width:520px">
+    <tr><th class="n">Dec</th><th class="n">Q3 Q2 Q1 Q0</th><th>Luz</th><th class="n">Display (74LS47)</th></tr>
+    <tr><td class="n">0–7</td><td class="n">0xxx<br>0000 … 0111</td><td class="G"><b>Verde</b></td><td class="n">0 … 7</td></tr>
+    <tr><td class="n">8</td><td class="n">1000</td><td class="Y"><b>Amarilla</b></td><td class="n">8</td></tr>
+    <tr><td class="n">9</td><td class="n">1001</td><td class="Y"><b>Amarilla</b></td><td class="n">9</td></tr>
+    <tr><td class="n">10–15</td><td class="n">1010 … 1111</td><td class="R"><b>Roja</b></td><td class="n">símbolos (ver nota)</td></tr>
+  </table></div>
+  <div class="eq">
+    <b class="G">Verde</b><span>= Q̅3</span>
+    <b class="Y">Amarillo</b><span>= Q3 · Q̅2 · Q̅1</span>
+    <b class="R">Rojo</b><span>= Q3 · (Q2 + Q1)</span>
+  </div>
+  <p>El verde sale gratis de la salida Q̅ del último biestable, sin ninguna puerta. El amarillo usa 2 puertas AND y el rojo 1 OR y 1 AND. En total un 74LS08 (3 puertas usadas) y un 74LS32 (1 puerta usada).</p>
+
+  <h3>Esquema</h3>
+  <figure>
+  <svg viewBox="0 0 860 420" width="860" height="420" role="img" aria-label="Esquema del semáforo: cuatro biestables JK en cascada, lógica de luces y decodificador 74LS47">
+    <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" class="ahf"/></marker></defs>
+    <!-- CLK -->
+    <text x="10" y="84">CLK</text><text x="6" y="100" class="lbl">1 Hz</text>
+    <path class="w" d="M42 80 H70"/>
+    <!-- 4 flip-flops -->
+    <g>
+      <rect class="box" x="70" y="40" width="110" height="90" rx="4"/>
+      <text x="80" y="60">J ← 1</text><text x="80" y="82">▷CLK</text><text x="80" y="104">K ← 1</text>
+      <text x="150" y="60">Q</text><text x="150" y="104">Q̅</text>
+      <text x="82" y="152" class="lbl">IC1 FF1 · Q0</text>
+      <circle cx="72" cy="80" r="4" style="fill:var(--panel);stroke:var(--fg)"/>
+    </g>
+    <g>
+      <rect class="box" x="260" y="40" width="110" height="90" rx="4"/>
+      <text x="270" y="60">J ← 1</text><text x="270" y="82">▷CLK</text><text x="270" y="104">K ← 1</text>
+      <text x="340" y="60">Q</text><text x="340" y="104">Q̅</text>
+      <text x="272" y="152" class="lbl">IC1 FF2 · Q1</text>
+      <circle cx="262" cy="80" r="4" style="fill:var(--panel);stroke:var(--fg)"/>
+    </g>
+    <g>
+      <rect class="box" x="450" y="40" width="110" height="90" rx="4"/>
+      <text x="460" y="60">J ← 1</text><text x="460" y="82">▷CLK</text><text x="460" y="104">K ← 1</text>
+      <text x="530" y="60">Q</text><text x="530" y="104">Q̅</text>
+      <text x="462" y="152" class="lbl">IC2 FF1 · Q2</text>
+      <circle cx="452" cy="80" r="4" style="fill:var(--panel);stroke:var(--fg)"/>
+    </g>
+    <g>
+      <rect class="box" x="640" y="40" width="110" height="90" rx="4"/>
+      <text x="650" y="60">J ← 1</text><text x="650" y="82">▷CLK</text><text x="650" y="104">K ← 1</text>
+      <text x="720" y="60">Q</text><text x="720" y="104">Q̅</text>
+      <text x="652" y="152" class="lbl">IC2 FF2 · Q3</text>
+      <circle cx="642" cy="80" r="4" style="fill:var(--panel);stroke:var(--fg)"/>
+    </g>
+    <!-- ripple connections Q -> next CLK -->
+    <path class="w" d="M180 56 H215 V80 H258"/>
+    <path class="w" d="M370 56 H405 V80 H448"/>
+    <path class="w" d="M560 56 H595 V80 H638"/>
+    <!-- bus lines down -->
+    <circle class="dot" cx="200" cy="56" r="3"/><path class="w" d="M200 56 V190"/><text x="190" y="205">Q0</text>
+    <circle class="dot" cx="390" cy="56" r="3"/><path class="w" d="M390 56 V190"/><text x="380" y="205">Q1</text>
+    <circle class="dot" cx="580" cy="56" r="3"/><path class="w" d="M580 56 V190"/><text x="570" y="205">Q2</text>
+    <path class="w" d="M750 56 H790 V190"/><text x="780" y="205">Q3</text>
+    <path class="w" d="M370 104 H420 V190"/><text x="410" y="205">Q̅1</text>
+    <path class="w" d="M560 104 H610 V190"/><text x="600" y="205">Q̅2</text>
+    <path class="w" d="M750 104 H770 V20 H830"/><text x="806" y="14">Q̅3 → LED <tspan class="G">VERDE</tspan></text>
+    <!-- logic block -->
+    <rect class="box" x="400" y="230" width="420" height="160" rx="4"/>
+    <text x="414" y="252">74LS08 + 74LS32</text>
+    <text x="414" y="282">X = Q̅2 · Q̅1        (AND 1: pines 1,2 → 3)</text>
+    <text x="414" y="304" class="Y">AMARILLO = Q3 · X  (AND 2: pines 4,5 → 6)</text>
+    <text x="414" y="334">W = Q2 + Q1        (OR 1:  pines 1,2 → 3)</text>
+    <text x="414" y="356" class="R">ROJO = Q3 · W      (AND 3: pines 9,10 → 8)</text>
+    <!-- decoder block -->
+    <rect class="box" x="40" y="230" width="300" height="160" rx="4"/>
+    <text x="54" y="252">74LS47  (BCD → 7 seg)</text>
+    <text x="54" y="280">A(7)←Q0  B(1)←Q1</text>
+    <text x="54" y="300">C(2)←Q2  D(6)←Q3</text>
+    <text x="54" y="328">a..g (13,12,11,10,9,15,14)</text>
+    <text x="54" y="348">→ display ánodo común</text>
+    <text x="54" y="374" class="lbl">LT̅(3), BI̅/RBO̅(4), RBI̅(5) → VCC</text>
+  </svg>
+  <figcaption>Contador asíncrono ascendente: el 74LS76 dispara en flanco de bajada, así que cada Q se lleva directamente al CLK del siguiente biestable. J = K = 1 en todos (modo toggle).</figcaption>
+  </figure>
+
+  <h3>Cableado pin a pin</h3>
+  <div class="scroll"><table>
+    <tr><th>Integrado</th><th class="n">Pin</th><th>Conectar a</th><th>Función</th></tr>
+    <tr><td rowspan="9"><b>IC1 · 74LS76</b><br><span class="sub">FF1 = Q0, FF2 = Q1</span></td><td class="n">5</td><td>VCC</td><td>alimentación</td></tr>
+    <tr><td class="n">13</td><td>GND</td><td>masa</td></tr>
+    <tr><td class="n">2, 3, 7, 8</td><td>VCC</td><td>PRE̅ y CLR̅ inactivos</td></tr>
+    <tr><td class="n">4, 16, 9, 12</td><td>VCC</td><td>J = K = 1 (toggle)</td></tr>
+    <tr><td class="n">1</td><td>Temporizador, salida <b>1 Hz</b></td><td>CLK del contador</td></tr>
+    <tr><td class="n">15</td><td>IC1-6 · 74LS47-7</td><td>Q0</td></tr>
+    <tr><td class="n">6</td><td>IC1-15</td><td>CLK de FF2 ← Q0</td></tr>
+    <tr><td class="n">11</td><td>IC2-1 · 74LS47-1 · 74LS32-2</td><td>Q1</td></tr>
+    <tr><td class="n">10</td><td>74LS08-2</td><td>Q̅1</td></tr>
+
+    <tr><td rowspan="9"><b>IC2 · 74LS76</b><br><span class="sub">FF1 = Q2, FF2 = Q3</span></td><td class="n">5</td><td>VCC</td><td>alimentación</td></tr>
+    <tr><td class="n">13</td><td>GND</td><td>masa</td></tr>
+    <tr><td class="n">2, 3, 7, 8</td><td>VCC</td><td>PRE̅ y CLR̅ inactivos</td></tr>
+    <tr><td class="n">4, 16, 9, 12</td><td>VCC</td><td>J = K = 1</td></tr>
+    <tr><td class="n">1</td><td>IC1-11</td><td>CLK de FF1 ← Q1</td></tr>
+    <tr><td class="n">15</td><td>IC2-6 · 74LS47-2 · 74LS32-1</td><td>Q2</td></tr>
+    <tr><td class="n">14</td><td>74LS08-1</td><td>Q̅2</td></tr>
+    <tr><td class="n">11</td><td>74LS47-6 · 74LS08-5 · 74LS08-10</td><td>Q3</td></tr>
+    <tr><td class="n">10</td><td><b class="G">LED izquierdo (verde)</b></td><td>Verde = Q̅3</td></tr>
+
+    <tr><td rowspan="6"><b>IC3 · 74LS08</b></td><td class="n">14 / 7</td><td>VCC / GND</td><td>alimentación</td></tr>
+    <tr><td class="n">1, 2</td><td>IC2-14 (Q̅2), IC1-10 (Q̅1)</td><td>X = Q̅2·Q̅1</td></tr>
+    <tr><td class="n">3 → 4</td><td>puente pin 3 a pin 4</td><td>X</td></tr>
+    <tr><td class="n">5</td><td>IC2-11 (Q3)</td><td></td></tr>
+    <tr><td class="n">6</td><td><b class="Y">LED central, no contiguo (amarillo)</b></td><td>Amarillo = Q3·X</td></tr>
+    <tr><td class="n">9, 10 → 8</td><td>9 ← 74LS32-3, 10 ← IC2-11 (Q3); <b class="R">8 → LED derecho (rojo)</b></td><td>Rojo = Q3·(Q2+Q1)</td></tr>
+
+    <tr><td rowspan="2"><b>IC4 · 74LS32</b></td><td class="n">14 / 7</td><td>VCC / GND</td><td>alimentación</td></tr>
+    <tr><td class="n">1, 2 → 3</td><td>1 ← IC2-15 (Q2), 2 ← IC1-11 (Q1); 3 → 74LS08-9</td><td>W = Q2 + Q1</td></tr>
+
+    <tr><td rowspan="5"><b>IC5 · 74LS47</b></td><td class="n">16 / 8</td><td>VCC / GND</td><td>alimentación</td></tr>
+    <tr><td class="n">7, 1, 2, 6</td><td>Q0, Q1, Q2, Q3</td><td>entradas A, B, C, D (A = LSB)</td></tr>
+    <tr><td class="n">3, 4, 5</td><td>VCC</td><td>LT̅, BI̅/RBO̅, RBI̅ inactivos</td></tr>
+    <tr><td class="n">13, 12, 11, 10</td><td>segmentos a, b, c, d</td><td rowspan="2">salidas activas a nivel bajo</td></tr>
+    <tr><td class="n">9, 15, 14</td><td>segmentos e, f, g</td></tr>
+  </table></div>
+  <p class="note">El 74LS47 tiene salidas activas a nivel bajo, así que el display tiene que ser de <b>ánodo común</b> (común a VCC). Para 10–15 no muestra números sino unos símbolos fijos (el 15 aparece apagado). Como cada valor da un símbolo distinto, sigue sirviendo para comprobar la tabla: los 6 símbolos coinciden con el led rojo.</p>
+
+  <h3>Comprobación en el laboratorio</h3>
+  <ol>
+    <li>Conecta VCC y GND del temporizador y usa la salida de 1 Hz (con 10 Hz va demasiado rápido para verlo).</li>
+    <li>Display de 0 a 7: solo el led izquierdo (verde).</li>
+    <li>Display en 8 y 9: solo el led central (amarillo).</li>
+    <li>Del 10 al 15 (símbolos y apagado): solo el led derecho (rojo). Después vuelve a 0 y a verde.</li>
+    <li>Al arrancar, el contador puede empezar en cualquier valor. Es normal; para forzar el 0 puedes llevar un momento los CLR̅ (pines 3 y 8 de ambos 76) a GND.</li>
+  </ol>
+</section>
+
+<!-- ========================= CANDADO ========================= -->
+<section>
+  <h2>2 · Candado de combinación (código 4 = 100)</h2>
+  <div class="eyebrow">Componentes: 1 × 74LS76 · 74LS02 · 74LS32 · pulsadores · interruptor Y · 1 led</div>
+
+  <h3>Máquina de estados (Moore, 2 biestables)</h3>
+  <p>Se introducen los bits del más significativo al menos: <b>1</b>, luego <b>0</b>, luego <b>0</b>. La salida depende solo del estado, así que el led queda encendido hasta la siguiente pulsación.</p>
+  <figure>
+  <svg viewBox="0 0 700 300" width="700" height="300" role="img" aria-label="Diagrama de estados del candado con cuatro estados S0 a S3">
+    <defs><marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" class="ahf"/></marker></defs>
+    <style>.a2{stroke:var(--fg);stroke-width:1.3;fill:none;marker-end:url(#ah2)}</style>
+    <!-- states -->
+    <circle class="st" cx="90" cy="150" r="42"/><text x="72" y="146">S0</text><text x="66" y="166" class="lbl">00 / Z=0</text>
+    <circle class="st" cx="270" cy="150" r="42"/><text x="252" y="146">S1</text><text x="246" y="166" class="lbl">01 / Z=0</text>
+    <circle class="st" cx="450" cy="150" r="42"/><text x="432" y="146">S2</text><text x="426" y="166" class="lbl">10 / Z=0</text>
+    <circle class="stz" cx="620" cy="150" r="42"/><text x="602" y="146">S3</text><text x="596" y="166" class="lbl">11 / Z=1</text>
+    <!-- S0 self 0 -->
+    <path class="a2" d="M70 113 C50 70 130 70 110 113"/><text x="84" y="70">0</text>
+    <!-- S0 -> S1 on 1 -->
+    <path class="a2" d="M132 140 H226"/><text x="175" y="132">1</text>
+    <!-- S1 self 1 -->
+    <path class="a2" d="M250 113 C230 70 310 70 290 113"/><text x="264" y="70">1</text>
+    <!-- S1 -> S2 on 0 -->
+    <path class="a2" d="M312 140 H406"/><text x="355" y="132">0</text>
+    <!-- S2 -> S3 on 0 -->
+    <path class="a2" d="M492 140 H576"/><text x="530" y="132">0</text>
+    <!-- S2 -> S1 on 1 -->
+    <path class="a2" d="M420 180 C390 215 330 215 300 182"/><text x="355" y="222">1</text>
+    <!-- S3 -> S1 on 1 -->
+    <path class="a2" d="M600 187 C560 270 330 270 285 192"/><text x="440" y="262">1</text>
+    <!-- S3 -> S0 on 0 -->
+    <path class="a2" d="M610 109 C560 10 150 10 100 108"/><text x="355" y="30">0</text>
+  </svg>
+  <figcaption>Estado = Q1 Q0. S0 inicio, S1 “1”, S2 “10”, S3 “100” (abierto). Las etiquetas de las flechas son el valor del interruptor Y al pulsar.</figcaption>
+  </figure>
+
+  <div class="grid2">
+  <div class="scroll"><table>
+    <tr><th class="n">Q1 Q0</th><th class="n">Y</th><th class="n">Q1⁺ Q0⁺</th><th class="n">J1 K1</th><th class="n">J0 K0</th><th class="n">Z</th></tr>
+    <tr><td class="n">0 0</td><td class="n">0</td><td class="n">0 0</td><td class="n">0 x</td><td class="n">0 x</td><td class="n">0</td></tr>
+    <tr><td class="n">0 0</td><td class="n">1</td><td class="n">0 1</td><td class="n">0 x</td><td class="n">1 x</td><td class="n">0</td></tr>
+    <tr><td class="n">0 1</td><td class="n">0</td><td class="n">1 0</td><td class="n">1 x</td><td class="n">x 1</td><td class="n">0</td></tr>
+    <tr><td class="n">0 1</td><td class="n">1</td><td class="n">0 1</td><td class="n">0 x</td><td class="n">x 0</td><td class="n">0</td></tr>
+    <tr><td class="n">1 0</td><td class="n">0</td><td class="n">1 1</td><td class="n">x 0</td><td class="n">1 x</td><td class="n">0</td></tr>
+    <tr><td class="n">1 0</td><td class="n">1</td><td class="n">0 1</td><td class="n">x 1</td><td class="n">1 x</td><td class="n">0</td></tr>
+    <tr><td class="n">1 1</td><td class="n">0</td><td class="n">0 0</td><td class="n">x 1</td><td class="n">x 1</td><td class="n">1</td></tr>
+    <tr><td class="n">1 1</td><td class="n">1</td><td class="n">0 1</td><td class="n">x 1</td><td class="n">x 0</td><td class="n">1</td></tr>
+  </table></div>
+  <div>
+    <div class="eq">
+      <b>Z</b><span>= Q1 · Q0 = NOR(Q̅1, Q̅0)</span>
+      <b>J0</b><span>= Y + Q1</span>
+      <b>K0</b><span>= Y̅ = NOR(Y, Y)</span>
+      <b>J1</b><span>= Q0 · Y̅ = NOR(Q̅0, Y)</span>
+      <b>K1</b><span>= Y + Q0</span>
+    </div>
+    <p>Escribiendo las AND con entradas negadas como NOR, todo cabe en un 74LS02 (3 puertas + 1 opcional para reset) y un 74LS32 (2 puertas). No hace falta ningún inversor aparte.</p>
+  </div>
+  </div>
+
+  <h3>Esquema</h3>
+  <figure>
+  <svg viewBox="0 0 820 330" width="820" height="330" role="img" aria-label="Esquema del candado: 74LS76 con lógica NOR y OR">
+    <defs><marker id="ah3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" class="ahf"/></marker></defs>
+    <text x="10" y="40">Y (interruptor)</text><path class="w" d="M20 50 V300"/><circle class="dot" cx="20" cy="50" r="3"/>
+    <text x="10" y="318" class="lbl">Y</text>
+    <!-- gates column -->
+    <rect class="box" x="90" y="40" width="250" height="44" rx="4"/><text x="100" y="58">OR 74LS32 (1,2→3)</text><text x="100" y="76" class="lbl">Y, Q1 → J0</text>
+    <rect class="box" x="90" y="100" width="250" height="44" rx="4"/><text x="100" y="118">NOR 74LS02 (2,3→1)</text><text x="100" y="136" class="lbl">Y, Y → K0 = Y̅</text>
+    <rect class="box" x="90" y="160" width="250" height="44" rx="4"/><text x="100" y="178">NOR 74LS02 (5,6→4)</text><text x="100" y="196" class="lbl">Q̅0, Y → J1</text>
+    <rect class="box" x="90" y="220" width="250" height="44" rx="4"/><text x="100" y="238">OR 74LS32 (4,5→6)</text><text x="100" y="256" class="lbl">Y, Q0 → K1</text>
+    <path class="w" d="M20 62 H90"/><path class="w" d="M20 122 H90"/><path class="w" d="M20 182 H90"/><path class="w" d="M20 242 H90"/>
+    <circle class="dot" cx="20" cy="62" r="3"/><circle class="dot" cx="20" cy="122" r="3"/><circle class="dot" cx="20" cy="182" r="3"/><circle class="dot" cx="20" cy="242" r="3"/>
+    <!-- FFs -->
+    <rect class="box" x="430" y="30" width="140" height="120" rx="4"/>
+    <text x="440" y="58">J0 (4)</text><text x="440" y="92">▷CLK (1)</text><text x="440" y="128">K0 (16)</text>
+    <text x="510" y="58">Q0 15</text><text x="510" y="128">Q̅0 14</text>
+    <text x="440" y="168" class="lbl">IC1 FF1</text>
+    <rect class="box" x="430" y="190" width="140" height="120" rx="4"/>
+    <text x="440" y="218">J1 (9)</text><text x="440" y="252">▷CLK (6)</text><text x="440" y="288">K1 (12)</text>
+    <text x="510" y="218">Q1 11</text><text x="510" y="288">Q̅1 10</text>
+    <text x="440" y="328" class="lbl">IC1 FF2</text>
+    <path class="w" d="M340 62 H380 V54 H430"/>
+    <path class="w" d="M340 122 H430"/>
+    <path class="w" d="M340 182 H380 V214 H430"/>
+    <path class="w" d="M340 242 H390 V284 H430"/>
+    <!-- clock -->
+    <text x="360" y="88" class="lbl">PULSADOR</text>
+    <path class="w" d="M395 92 H430"/><path class="w" d="M395 92 V252 H430"/><circle class="dot" cx="395" cy="92" r="3"/>
+    <!-- Z gate -->
+    <rect class="box" x="640" y="130" width="160" height="64" rx="4"/>
+    <text x="650" y="152">NOR 74LS02</text><text x="650" y="170">(8,9→10)</text><text x="650" y="186" class="lbl">Q̅1, Q̅0 → Z</text>
+    <path class="w" d="M570 124 H610 V150 H640"/><path class="w" d="M570 284 H610 V176 H640"/>
+    <path class="w" d="M800 162 H812"/><text x="720" y="222" style="fill:var(--accent)">Z → LED</text>
+    <text x="580" y="20" class="lbl">Q0 → OR(K1) · Q̅0 → NOR(J1), NOR(Z)</text>
+    <text x="580" y="34" class="lbl">Q1 → OR(J0) · Q̅1 → NOR(Z)</text>
+  </svg>
+  <figcaption>Los dos biestables comparten el mismo reloj, que es el pulsador. El 74LS76 cambia en el flanco de bajada, es decir, al <b>soltar</b> el pulsador.</figcaption>
+  </figure>
+
+  <h3>Cableado pin a pin</h3>
+  <div class="scroll"><table>
+    <tr><th>Integrado</th><th class="n">Pin</th><th>Conectar a</th><th>Función</th></tr>
+    <tr><td rowspan="12"><b>IC1 · 74LS76</b><br><span class="sub">FF1 = Q0, FF2 = Q1</span></td><td class="n">5 / 13</td><td>VCC / GND</td><td>alimentación</td></tr>
+    <tr><td class="n">2, 7</td><td>VCC</td><td>PRE̅ inactivo</td></tr>
+    <tr><td class="n">3, 8</td><td>VCC, o 74LS02-13 si pones reset</td><td>CLR̅</td></tr>
+    <tr><td class="n">1, 6</td><td><b>Pulsador</b> (el mismo para los dos)</td><td>reloj</td></tr>
+    <tr><td class="n">4</td><td>74LS32-3</td><td>J0 = Y + Q1</td></tr>
+    <tr><td class="n">16</td><td>74LS02-1</td><td>K0 = Y̅</td></tr>
+    <tr><td class="n">9</td><td>74LS02-4</td><td>J1 = Q0·Y̅</td></tr>
+    <tr><td class="n">12</td><td>74LS32-6</td><td>K1 = Y + Q0</td></tr>
+    <tr><td class="n">15</td><td>74LS32-5</td><td>Q0</td></tr>
+    <tr><td class="n">14</td><td>74LS02-5 · 74LS02-9</td><td>Q̅0</td></tr>
+    <tr><td class="n">11</td><td>74LS32-2</td><td>Q1</td></tr>
+    <tr><td class="n">10</td><td>74LS02-8</td><td>Q̅1</td></tr>
+
+    <tr><td rowspan="5"><b>IC2 · 74LS02</b></td><td class="n">14 / 7</td><td>VCC / GND</td><td>alimentación</td></tr>
+    <tr><td class="n">2, 3 → 1</td><td>2 y 3 ← Y; 1 → IC1-16</td><td>K0 = NOR(Y,Y) = Y̅</td></tr>
+    <tr><td class="n">5, 6 → 4</td><td>5 ← IC1-14 (Q̅0), 6 ← Y; 4 → IC1-9</td><td>J1 = NOR(Q̅0,Y)</td></tr>
+    <tr><td class="n">8, 9 → 10</td><td>8 ← IC1-10 (Q̅1), 9 ← IC1-14 (Q̅0); <b>10 → LED</b></td><td>Z = Q1·Q0</td></tr>
+    <tr><td class="n">11, 12 → 13</td><td>opcional: 11 y 12 ← 2º pulsador (reset); 13 → IC1-3 y IC1-8</td><td>CLR̅ = NOT(reset)</td></tr>
+
+    <tr><td rowspan="3"><b>IC3 · 74LS32</b></td><td class="n">14 / 7</td><td>VCC / GND</td><td>alimentación</td></tr>
+    <tr><td class="n">1, 2 → 3</td><td>1 ← Y, 2 ← IC1-11 (Q1); 3 → IC1-4</td><td>J0</td></tr>
+    <tr><td class="n">4, 5 → 6</td><td>4 ← Y, 5 ← IC1-15 (Q0); 6 → IC1-12</td><td>K1</td></tr>
+  </table></div>
+  <p class="note">Y es un interruptor de 2 posiciones del tablero (0/1). El reloj es el tablero de <b>Pulsadores</b>: recuerda alimentarlo (VCC y GND) y coger la salida de uno de sus pulsadores. Si no usas el reset, deja la puerta 4 del 74LS02 sin conectar y los pines 3 y 8 del 74LS76 a VCC.</p>
+
+  <h3>Comprobación en el laboratorio</h3>
+  <ol>
+    <li>Si has puesto reset, púlsalo una vez: led apagado (estado S0).</li>
+    <li>Y = 1, pulsa y suelta. Y = 0, pulsa y suelta. Y = 0, pulsa y suelta. <b>Se enciende el led.</b></li>
+    <li>Pulsa otra vez con cualquier Y: el led se apaga.</li>
+    <li>Pruebas que <b>no</b> deben abrir: 1-1-0, 0-0-0, 1-0-1. La secuencia 1-1-0-0 sí abre, porque los últimos tres bits son 100.</li>
+    <li>Cambia Y siempre con el pulsador en reposo: el biestable lee J y K en el momento de soltar.</li>
+  </ol>
+  <p class="sub">El datasheet del NE555 no hace falta en esta práctica: el temporizador del simulador ya da la señal de reloj.</p>
+</section>
+</main>
